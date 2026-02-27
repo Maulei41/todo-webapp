@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 
 type InterruptModalProps = {
   isOpen: boolean;
