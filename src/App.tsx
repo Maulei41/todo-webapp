@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 
 // Define the shape of a single task
 type Task = {
@@ -8,7 +8,7 @@ type Task = {
 };
 
 function App() {
-  // State to hold the list of all tasks
+  // State to hold the list of all tasks, initialized from localStorage
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const savedTasks = localStorage.getItem('tasks');
@@ -19,12 +19,31 @@ function App() {
     }
   });
 
-  // Effect to save tasks to localStorage whenever the tasks state changes
+  // State for the new task input field
+  const [newTaskText, setNewTaskText] = useState('');
+
+  // Effect to save tasks to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Filter tasks into incomplete and completed lists for rendering
+  // Handler for form submission to add a new task
+  const handleAddTask = (e: FormEvent) => {
+    e.preventDefault();
+    const text = newTaskText.trim();
+    if (text === '') return;
+
+    const newTask: Task = {
+      id: Date.now(),
+      text: text,
+      completed: false,
+    };
+
+    setTasks(prevTasks => [...prevTasks, newTask]);
+    setNewTaskText(''); // Clear input field
+  };
+
+  // Filter tasks into incomplete and completed lists
   const incompleteTasks = tasks.filter(task => !task.completed);
   const completedTasks = tasks.filter(task => task.completed);
 
@@ -39,9 +58,11 @@ function App() {
 
         <main>
           {/* Add Task Form */}
-          <form className="flex gap-2 mb-8">
+          <form onSubmit={handleAddTask} className="flex gap-2 mb-8">
             <input
               type="text"
+              value={newTaskText}
+              onChange={(e) => setNewTaskText(e.target.value)}
               placeholder="Add a new task..."
               className="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
@@ -57,7 +78,12 @@ function App() {
           <section className="mb-12">
             <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Tasks</h2>
             <ul className="space-y-3">
-              {/* Task items will go here */}
+              {incompleteTasks.map(task => (
+                <li key={task.id} className="flex items-center bg-white p-3 rounded-lg shadow-sm">
+                  <span className="flex-grow text-gray-800">{task.text}</span>
+                  {/* Action buttons will go here */}
+                </li>
+              ))}
               {incompleteTasks.length === 0 && (
                 <li className="text-center text-gray-400 py-4">
                   Your task list is empty.
