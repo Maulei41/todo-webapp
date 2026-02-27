@@ -1,18 +1,63 @@
+import { useState } from 'react';
 import type { Task } from '../App';
 
 type TaskItemProps = {
   task: Task;
   onToggleCompletion: (id: number) => void;
   onDelete: (id: number) => void;
+  onDragStart?: (id: number) => void;
+  onDrop?: (id: number) => void;
 };
 
-export function TaskItem({ task, onToggleCompletion, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDrop }: TaskItemProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  
+  // Draggability is only enabled for incomplete tasks
+  const isDraggable = !task.completed && onDragStart && onDrop;
+
+  const handleDragStart = (e: React.DragEvent<HTMLLIElement>) => {
+    if (!isDraggable) return;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(task.id));
+    onDragStart?.(task.id);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLIElement>) => {
+    if (!isDraggable) return;
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    if (!isDraggable) return;
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLIElement>) => {
+    if (!isDraggable) return;
+    e.preventDefault();
+    setIsDragOver(false);
+    onDrop?.(task.id);
+  };
+
   return (
     <li
-      className={`flex items-center bg-white p-3 rounded-lg shadow-sm transition-opacity ${
-        task.completed ? 'opacity-50' : ''
-      }`}
+      draggable={isDraggable}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`
+        flex items-center bg-white p-3 rounded-lg shadow-sm transition-all duration-150
+        ${task.completed ? 'opacity-50' : 'cursor-grab'}
+        ${isDragOver ? 'ring-2 ring-blue-500' : ''}
+      `}
     >
+      {isDraggable && (
+        <span className="pr-2 text-gray-400 cursor-grab" aria-label="Drag to reorder">
+          ⋮⋮
+        </span>
+      )}
       <input
         type="checkbox"
         checked={task.completed}

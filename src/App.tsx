@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TaskItem } from './components/TaskItem';
 import { FloatingButton } from './components/FloatingButton';
 import { InterruptModal } from './components/InterruptModal';
@@ -43,6 +43,9 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
 
+  // Ref to store the ID of the task being dragged
+  const draggedTaskId = useRef<number | null>(null);
+
   // Effects for persistence
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -51,6 +54,35 @@ function App() {
   useEffect(() => {
     localStorage.setItem('interruptions', JSON.stringify(interruptions));
   }, [interruptions]);
+
+  // --- Drag and Drop Handlers ---
+  const handleTaskDragStart = (id: number) => {
+    draggedTaskId.current = id;
+  };
+
+  const handleTaskDrop = (targetTaskId: number) => {
+    if (draggedTaskId.current === null) return;
+
+    const draggedId = draggedTaskId.current;
+    const tasksCopy = [...tasks];
+    
+    const draggedTask = tasksCopy.find(t => t.id === draggedId);
+    if (!draggedTask) return;
+
+    // Remove dragged task from its original position
+    const itemsWithoutDragged = tasksCopy.filter(t => t.id !== draggedId);
+    
+    // Find the index to insert at
+    const targetIndex = itemsWithoutDragged.findIndex(t => t.id === targetTaskId);
+    
+    // Insert the dragged task at the target's position
+    if (targetIndex !== -1) {
+      itemsWithoutDragged.splice(targetIndex, 0, draggedTask);
+      setTasks(itemsWithoutDragged);
+    }
+
+    draggedTaskId.current = null; // Reset dragged task
+  };
 
   // --- Task Handlers ---
   const handleAddTask = (e: React.FormEvent<HTMLFormElement>) => {
@@ -153,6 +185,8 @@ function App() {
                   task={task}
                   onToggleCompletion={toggleTaskCompletion}
                   onDelete={deleteTask}
+                  onDragStart={handleTaskDragStart}
+                  onDrop={handleTaskDrop}
                 />
               ))}
               {incompleteTasks.length === 0 && (
