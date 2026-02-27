@@ -1,4 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
 import { TaskItem } from './components/TaskItem';
 import { FloatingButton } from './components/FloatingButton';
 import { InterruptModal } from './components/InterruptModal';
@@ -43,8 +58,13 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
 
-  // Ref to store the ID of the task being dragged
-  const draggedTaskId = useRef<number | null>(null);
+  // --- dnd-kit sensor setup ---
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Effects for persistence
   useEffect(() => {
@@ -55,36 +75,19 @@ function App() {
     localStorage.setItem('interruptions', JSON.stringify(interruptions));
   }, [interruptions]);
 
-  // --- Drag and Drop Handlers ---
-  const handleTaskDragStart = (id: number) => {
-    draggedTaskId.current = id;
-  };
-
-  const handleTaskDrop = (targetTaskId: number) => {
-    const draggedId = draggedTaskId.current;
-    if (draggedId === null || draggedId === targetTaskId) {
-      draggedTaskId.current = null;
-      return; // Do nothing if dropping on itself or if no drag is active
-    }
-
-    const tasksCopy = [...tasks];
-    const draggedIndex = tasksCopy.findIndex(t => t.id === draggedId);
-    const targetIndex = tasksCopy.findIndex(t => t.id === targetTaskId);
-
-    // Ensure both tasks are found
-    if (draggedIndex === -1 || targetIndex === -1) {
-      draggedTaskId.current = null;
-      return;
-    }
+  // --- Drag and Drop Handler (dnd-kit) ---
+  function handleDragEnd(event: any) {
+    const {active, over} = event;
     
-    // Remove the dragged item from its original position
-    const [draggedItem] = tasksCopy.splice(draggedIndex, 1);
-    // Add it back at the target's position
-    tasksCopy.splice(targetIndex, 0, draggedItem);
-
-    setTasks(tasksCopy);
-    draggedTaskId.current = null;
-  };
+    if (active.id !== over.id) {
+      setTasks((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
 
   // --- Task Handlers ---
   const handleAddTask = (e: React.FormEvent<HTMLFormElement>) => {
@@ -132,6 +135,7 @@ function App() {
 
   const incompleteTasks = tasks.filter(task => !task.completed);
   const completedTasks = tasks.filter(task => task.completed);
+  const incompleteTaskIds = incompleteTasks.map(t => t.id);
 
   return (
     <div className="min-h-screen font-sans pt-8 bg-gray-50 pb-24">
@@ -180,23 +184,32 @@ function App() {
           {/* Main Task List */}
           <section className="mb-12">
             <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Tasks</h2>
-            <ul className="space-y-3">
-              {incompleteTasks.map(task => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggleCompletion={toggleTaskCompletion}
-                  onDelete={deleteTask}
-                  onDragStart={handleTaskDragStart}
-                  onDrop={handleTaskDrop}
-                />
-              ))}
-              {incompleteTasks.length === 0 && (
-                <li className="text-center text-gray-400 py-4">
-                  Your task list is empty.
-                </li>
-              )}
-            </ul>
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={incompleteTaskIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-3">
+                  {incompleteTasks.map(task => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggleCompletion={toggleTaskCompletion}
+                      onDelete={deleteTask}
+                    />
+                  ))}
+                  {incompleteTasks.length === 0 && (
+                    <li className="text-center text-gray-400 py-4">
+                      Your task list is empty.
+                    </li>
+                  )}
+                </ul>
+              </SortableContext>
+            </DndContext>
           </section>
 
           {/* Completed Task List */}

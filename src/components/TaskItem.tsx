@@ -1,61 +1,45 @@
-import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../App';
 
 type TaskItemProps = {
   task: Task;
   onToggleCompletion: (id: number) => void;
   onDelete: (id: number) => void;
-  onDragStart?: (id: number) => void;
-  onDrop?: (id: number) => void;
 };
 
-export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDrop }: TaskItemProps) {
-  const [isDragOver, setIsDragOver] = useState(false);
-  
-  // Draggability is only enabled for incomplete tasks
-  const isDraggable = !task.completed && onDragStart && onDrop;
+export function TaskItem({ task, onToggleCompletion, onDelete }: TaskItemProps) {
+  const isDraggable = !task.completed;
 
-  const handleDragStart = (e: React.DragEvent<HTMLSpanElement>) => {
-    if (!isDraggable) return;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(task.id));
-    onDragStart?.(task.id);
-  };
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id, disabled: !isDraggable });
 
-  const handleDragOver = (e: React.DragEvent<HTMLLIElement>) => {
-    if (!isDraggable) return;
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    if (!isDraggable) return;
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLLIElement>) => {
-    if (!isDraggable) return;
-    e.preventDefault();
-    setIsDragOver(false);
-    onDrop?.(task.id);
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
     <li
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      ref={setNodeRef}
+      style={style}
       className={`
-        flex items-center bg-white p-3 rounded-lg shadow-sm transition-all duration-150
+        flex items-center bg-white p-3 rounded-lg shadow-sm
         ${task.completed ? 'opacity-50' : ''}
-        ${isDragOver ? 'ring-2 ring-blue-500' : ''}
       `}
     >
       {isDraggable && (
+        // The handle is for accessibility and attributes
         <span
-          draggable={true}
-          onDragStart={handleDragStart}
-          className="p-2 mr-1 text-gray-400 cursor-grab select-none"
+          {...attributes}
+          className="p-2 mr-1 text-gray-400 cursor-grab touch-none"
           aria-label="Drag to reorder"
         >
           ⋮⋮
@@ -67,10 +51,9 @@ export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDr
         onChange={() => onToggleCompletion(task.id)}
         className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-4"
       />
-      <span
-        draggable={isDraggable}
-        onDragStart={handleDragStart}
-        className={`w-full text-gray-800 ${task.completed ? 'line-through' : ''} ${isDraggable ? 'cursor-grab select-none' : ''}`}
+      <span 
+        {...(isDraggable ? listeners : {})} 
+        className={`w-full text-gray-800 ${task.completed ? 'line-through' : ''} ${isDraggable ? 'cursor-grab' : ''}`}
       >
         {task.text}
       </span>
