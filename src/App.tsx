@@ -75,15 +75,24 @@ function App() {
     localStorage.setItem('interruptions', JSON.stringify(interruptions));
   }, [interruptions]);
 
-  // --- Drag and Drop Handler (dnd-kit) ---
-  function handleDragEnd(event: any) {
+  // --- Drag and Drop Handlers (dnd-kit) ---
+  function handleTaskDragEnd(event: any) {
     const {active, over} = event;
-    
     if (active.id !== over.id) {
       setTasks((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
-        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+  
+  function handleInterruptDragEnd(event: any) {
+    const {active, over} = event;
+    if (active.id !== over.id) {
+      setInterruptions((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
@@ -136,6 +145,7 @@ function App() {
   const incompleteTasks = tasks.filter(task => !task.completed);
   const completedTasks = tasks.filter(task => task.completed);
   const incompleteTaskIds = incompleteTasks.map(t => t.id);
+  const interruptionIds = interruptions.map(i => i.id);
 
   return (
     <div className="min-h-screen font-sans pt-8 bg-gray-50 pb-24">
@@ -168,16 +178,27 @@ function App() {
           {interruptions.length > 0 && (
             <section className="mb-12">
               <h2 className="text-2xl font-semibold border-b pb-2 mb-4 text-amber-700">Incoming Interruptions</h2>
-              <ul className="space-y-3">
-                {interruptions.map(interrupt => (
-                  <InterruptItem
-                    key={interrupt.id}
-                    interrupt={interrupt}
-                    onMove={moveInterruptToMain}
-                    onDelete={deleteInterrupt}
-                  />
-                ))}
-              </ul>
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleInterruptDragEnd}
+              >
+                <SortableContext 
+                  items={interruptionIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="space-y-3">
+                    {interruptions.map(interrupt => (
+                      <InterruptItem
+                        key={interrupt.id}
+                        interrupt={interrupt}
+                        onMove={moveInterruptToMain}
+                        onDelete={deleteInterrupt}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
             </section>
           )}
 
@@ -187,7 +208,7 @@ function App() {
             <DndContext 
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+              onDragEnd={handleTaskDragEnd}
             >
               <SortableContext 
                 items={incompleteTaskIds}

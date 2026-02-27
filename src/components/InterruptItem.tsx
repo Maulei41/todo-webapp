@@ -1,3 +1,5 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Interrupt } from '../App';
 
 type InterruptItemProps = {
@@ -7,9 +9,40 @@ type InterruptItemProps = {
 };
 
 export function InterruptItem({ interrupt, onMove, onDelete }: InterruptItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: interrupt.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <li className="flex items-center bg-amber-50 p-3 rounded-lg shadow-sm border border-amber-200">
-      <span className="flex-grow text-gray-800">{interrupt.text}</span>
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center bg-amber-50 p-3 rounded-lg shadow-sm border border-amber-200"
+    >
+      <span
+        {...attributes}
+        className="p-2 mr-1 text-gray-400 cursor-grab touch-none"
+        aria-label="Drag to reorder"
+      >
+        ⋮⋮
+      </span>
+      <span
+        {...listeners}
+        className="w-full text-gray-800 cursor-grab"
+      >
+        {interrupt.text}
+      </span>
       <div className="flex items-center gap-2 ml-4">
         <button
           onClick={() => onMove(interrupt.id)}
