@@ -61,27 +61,29 @@ function App() {
   };
 
   const handleTaskDrop = (targetTaskId: number) => {
-    if (draggedTaskId.current === null) return;
-
     const draggedId = draggedTaskId.current;
-    const tasksCopy = [...tasks];
-    
-    const draggedTask = tasksCopy.find(t => t.id === draggedId);
-    if (!draggedTask) return;
-
-    // Remove dragged task from its original position
-    const itemsWithoutDragged = tasksCopy.filter(t => t.id !== draggedId);
-    
-    // Find the index to insert at
-    const targetIndex = itemsWithoutDragged.findIndex(t => t.id === targetTaskId);
-    
-    // Insert the dragged task at the target's position
-    if (targetIndex !== -1) {
-      itemsWithoutDragged.splice(targetIndex, 0, draggedTask);
-      setTasks(itemsWithoutDragged);
+    if (draggedId === null || draggedId === targetTaskId) {
+      draggedTaskId.current = null;
+      return; // Do nothing if dropping on itself or if no drag is active
     }
 
-    draggedTaskId.current = null; // Reset dragged task
+    const tasksCopy = [...tasks];
+    const draggedIndex = tasksCopy.findIndex(t => t.id === draggedId);
+    const targetIndex = tasksCopy.findIndex(t => t.id === targetTaskId);
+
+    // Ensure both tasks are found
+    if (draggedIndex === -1 || targetIndex === -1) {
+      draggedTaskId.current = null;
+      return;
+    }
+    
+    // Remove the dragged item from its original position
+    const [draggedItem] = tasksCopy.splice(draggedIndex, 1);
+    // Add it back at the target's position
+    tasksCopy.splice(targetIndex, 0, draggedItem);
+
+    setTasks(tasksCopy);
+    draggedTaskId.current = null;
   };
 
   // --- Task Handlers ---

@@ -15,7 +15,7 @@ export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDr
   // Draggability is only enabled for incomplete tasks
   const isDraggable = !task.completed && onDragStart && onDrop;
 
-  const handleDragStart = (e: React.DragEvent<HTMLLIElement>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLSpanElement>) => {
     if (!isDraggable) return;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', String(task.id));
@@ -42,19 +42,22 @@ export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDr
 
   return (
     <li
-      draggable={isDraggable}
-      onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={`
         flex items-center bg-white p-3 rounded-lg shadow-sm transition-all duration-150
-        ${task.completed ? 'opacity-50' : 'cursor-grab'}
+        ${task.completed ? 'opacity-50' : ''}
         ${isDragOver ? 'ring-2 ring-blue-500' : ''}
       `}
     >
       {isDraggable && (
-        <span className="pr-2 text-gray-400 cursor-grab" aria-label="Drag to reorder">
+        <span
+          draggable={true}
+          onDragStart={handleDragStart}
+          className="p-2 mr-1 text-gray-400 cursor-grab select-none"
+          aria-label="Drag to reorder"
+        >
           ⋮⋮
         </span>
       )}
@@ -64,7 +67,11 @@ export function TaskItem({ task, onToggleCompletion, onDelete, onDragStart, onDr
         onChange={() => onToggleCompletion(task.id)}
         className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-4"
       />
-      <span className={`flex-grow text-gray-800 ${task.completed ? 'line-through' : ''}`}>
+      <span
+        draggable={isDraggable}
+        onDragStart={handleDragStart}
+        className={`w-full text-gray-800 ${task.completed ? 'line-through' : ''} ${isDraggable ? 'cursor-grab select-none' : ''}`}
+      >
         {task.text}
       </span>
       <button
