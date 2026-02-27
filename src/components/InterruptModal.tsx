@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 type InterruptModalProps = {
   isOpen: boolean;
@@ -11,7 +11,7 @@ export function InterruptModal({ isOpen, onClose, onSave }: InterruptModalProps)
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (text.trim()) {
       onSave(text.trim());

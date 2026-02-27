@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# Simple Todo App with Interrupt Buffer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a simple but thoughtful todo application built with React, TypeScript, and Vite, featuring a unique custom tool designed for professionals who need to manage frequent interruptions. The project was created as part of the Oursky Product Manager pre-test.
 
-Currently, two official plugins are available:
+## Core Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Add, Complete, Delete Tasks**: Standard todo list functionality.
+- **Persistent Storage**: All tasks and interruptions are saved to `localStorage`, so your data survives a page refresh.
+- **Drag-and-Drop Reordering**: Both main tasks and interruptions can be re-prioritized using a smooth drag-and-drop interface, powered by `dnd-kit`.
+- **Visual Priority Hint**: A subtle gradient on the main task list provides a visual cue that tasks at the top have a higher priority.
+- **Clear Completed**: A simple button to clean up your completed tasks.
+- **Responsive Design**: The app is designed to be usable on both desktop and mobile devices.
 
-## React Compiler
+## The Custom Feature: Interrupt Buffer
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+As a product manager, my day is often fragmented by client requests, urgent questions, and other small but important pings. These break my focus and can be hard to track. The **Interrupt Buffer** is designed to solve this.
 
-## Expanding the ESLint configuration
+### How It Works:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1.  **Quick Capture**: A floating red "+" button is always visible. Clicking it opens a small modal.
+2.  **Log the Interruption**: Type a quick note (e.g., "Client A asked for the latest mockups") and save it. The capture process is designed to take less than 5 seconds.
+3.  **Triage Later**: The interruption is added to a separate "Incoming Interruptions" list. The floating button shows a badge with the number of pending items.
+4.  **Promote to Task**: During a break or a planning session, you can review the interruptions. If an item requires significant work, click the "Move to main" button to add it to your primary task list for proper prioritization.
+5.  **Delete as Needed**: If an interruption was just a quick note that has been handled, you can delete it directly.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+This system keeps the main task list clean and focused on planned work, while ensuring that unexpected but important items are never lost.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Drag & Drop**: `dnd-kit` for a smooth and reliable experience.
+- **Persistence**: `localStorage`
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+To run this project locally:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  **Clone the repository**:
+    ```bash
+    git clone <your-repository-url>
+    cd todo-webapp
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+
+This will start the application, and you can open it in your browser at the local address provided (usually `http://localhost:5173`).
