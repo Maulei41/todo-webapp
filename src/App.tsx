@@ -55,6 +55,11 @@ function App() {
   const deleteTask = (id: number) => {
     setTasks(tasks.filter(task => task.id !== id));
   };
+  
+  // Handler to clear all completed tasks
+  const clearCompletedTasks = () => {
+    setTasks(tasks.filter(task => !task.completed));
+  };
 
   // Filter tasks into incomplete and completed lists
   const incompleteTasks = tasks.filter(task => !task.completed);
@@ -109,7 +114,17 @@ function App() {
 
           {/* Completed Task List */}
           <section>
-            <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Completed</h2>
+            <div className="flex justify-between items-center border-b pb-2 mb-4">
+              <h2 className="text-2xl font-semibold">Completed</h2>
+              {completedTasks.length > 0 && (
+                <button
+                  onClick={clearCompletedTasks}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                  Clear Completed
+                </button>
+              )}
+            </div>
             <ul className="space-y-3">
               {completedTasks.map(task => (
                 <TaskItem
