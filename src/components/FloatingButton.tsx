@@ -1,4 +1,3 @@
-import type { Interrupt } from '../App';
 
 type FloatingButtonProps = {
   interruptionsCount: number;
