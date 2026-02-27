@@ -1,7 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
+import { TaskItem } from './components/TaskItem';
 
 // Define the shape of a single task
-type Task = {
+export type Task = {
   id: number;
   text: string;
   completed: boolean;
@@ -43,6 +44,18 @@ function App() {
     setNewTaskText(''); // Clear input field
   };
 
+  // Handler to toggle the completed state of a task
+  const toggleTaskCompletion = (id: number) => {
+    setTasks(tasks.map(task =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ));
+  };
+
+  // Handler to delete a task
+  const deleteTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
   // Filter tasks into incomplete and completed lists
   const incompleteTasks = tasks.filter(task => !task.completed);
   const completedTasks = tasks.filter(task => task.completed);
@@ -79,10 +92,12 @@ function App() {
             <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Tasks</h2>
             <ul className="space-y-3">
               {incompleteTasks.map(task => (
-                <li key={task.id} className="flex items-center bg-white p-3 rounded-lg shadow-sm">
-                  <span className="flex-grow text-gray-800">{task.text}</span>
-                  {/* Action buttons will go here */}
-                </li>
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleCompletion={toggleTaskCompletion}
+                  onDelete={deleteTask}
+                />
               ))}
               {incompleteTasks.length === 0 && (
                 <li className="text-center text-gray-400 py-4">
@@ -96,7 +111,14 @@ function App() {
           <section>
             <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Completed</h2>
             <ul className="space-y-3">
-              {/* Completed items will go here */}
+              {completedTasks.map(task => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleCompletion={toggleTaskCompletion}
+                  onDelete={deleteTask}
+                />
+              ))}
               {completedTasks.length === 0 && (
                 <li className="text-center text-gray-400 py-4">
                   No completed tasks yet.
