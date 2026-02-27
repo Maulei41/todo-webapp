@@ -1,5 +1,10 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { TaskItem } from './components/TaskItem';
+import { FloatingButton } from './components/FloatingButton';
+import { InterruptModal } from './components/InterruptModal';
+import { type Interrupt } from './components/FloatingButton';
+import { InterruptItem } from './components/InterruptItem';
+
 
 // Define the shape of a single task
 export type Task = {
@@ -9,64 +14,80 @@ export type Task = {
 };
 
 function App() {
-  // State to hold the list of all tasks, initialized from localStorage
+  // State for main tasks
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
-      const savedTasks = localStorage.getItem('tasks');
-      return savedTasks ? JSON.parse(savedTasks) : [];
-    } catch (error) {
-      console.error("Failed to parse tasks from localStorage", error);
+      const saved = localStorage.getItem('tasks');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to parse tasks", e);
       return [];
     }
   });
 
-  // State for the new task input field
+  // State for interruptions
+  const [interruptions, setInterruptions] = useState<Interrupt[]>(() => {
+    try {
+      const saved = localStorage.getItem('interruptions');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to parse interruptions", e);
+      return [];
+    }
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
 
-  // Effect to save tasks to localStorage whenever they change
+  // Effects for persistence
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Handler for form submission to add a new task
-  const handleAddTask = (e: FormEvent) => {
+  useEffect(() => {
+    localStorage.setItem('interruptions', JSON.stringify(interruptions));
+  }, [interruptions]);
+
+  // --- Task Handlers ---
+  const handleAddTask = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = newTaskText.trim();
     if (text === '') return;
-
-    const newTask: Task = {
-      id: Date.now(),
-      text: text,
-      completed: false,
-    };
-
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    setNewTaskText(''); // Clear input field
+    setTasks(prev => [...prev, { id: Date.now(), text, completed: false }]);
+    setNewTaskText('');
   };
 
-  // Handler to toggle the completed state of a task
   const toggleTaskCompletion = (id: number) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
-  // Handler to delete a task
   const deleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id));
-  };
-  
-  // Handler to clear all completed tasks
-  const clearCompletedTasks = () => {
-    setTasks(tasks.filter(task => !task.completed));
+    setTasks(tasks.filter(t => t.id !== id));
   };
 
-  // Filter tasks into incomplete and completed lists
+  const clearCompletedTasks = () => {
+    setTasks(tasks.filter(t => !t.completed));
+  };
+
+  // --- Interruption Handlers ---
+  const addInterrupt = (text: string) => {
+    setInterruptions(prev => [...prev, { id: Date.now(), text }]);
+  };
+
+  const deleteInterrupt = (id: number) => {
+    setInterruptions(interruptions.filter(i => i.id !== id));
+  };
+
+  const moveInterruptToMain = (id: number) => {
+    // This functionality will be built in the next step
+    console.log(`Moving task ${id} to main list (not implemented yet)`);
+  };
+
   const incompleteTasks = tasks.filter(task => !task.completed);
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
-    <div className="min-h-screen font-sans flex flex-col items-center pt-8 bg-gray-50">
+    <div className="min-h-screen font-sans pt-8 bg-gray-50 pb-24">
       <div className="w-full max-w-2xl mx-auto px-4">
 
         <header className="text-center mb-8">
@@ -91,6 +112,23 @@ function App() {
               Add Task
             </button>
           </form>
+
+          {/* Interruptions List */}
+          {interruptions.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-2xl font-semibold border-b pb-2 mb-4 text-amber-700">Incoming Interruptions</h2>
+              <ul className="space-y-3">
+                {interruptions.map(interrupt => (
+                  <InterruptItem
+                    key={interrupt.id}
+                    interrupt={interrupt}
+                    onMove={moveInterruptToMain}
+                    onDelete={deleteInterrupt}
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Main Task List */}
           <section className="mb-12">
@@ -144,6 +182,17 @@ function App() {
 
         </main>
       </div>
+
+      <FloatingButton 
+        interruptionsCount={interruptions.length}
+        onClick={() => setIsModalOpen(true)}
+      />
+      
+      <InterruptModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={addInterrupt}
+      />
     </div>
   );
 }
