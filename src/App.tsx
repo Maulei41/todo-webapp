@@ -32,6 +32,26 @@ export type Interrupt = {
 };
 
 
+const EmptyStateTasks = () => (
+  <li className="text-center text-gray-400 py-8 px-4 border-2 border-dashed rounded-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+    <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+    <p className="mt-1 text-sm text-gray-500">Get started by adding a new task above.</p>
+  </li>
+);
+
+const EmptyStateCompleted = () => (
+  <li className="text-center text-gray-400 py-8 px-4 border-2 border-dashed rounded-lg">
+     <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h3 className="mt-2 text-sm font-medium text-gray-900">No completed tasks</h3>
+    <p className="mt-1 text-sm text-gray-500">Completed tasks will appear here.</p>
+  </li>
+);
+
 function App() {
   // State for main tasks
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -78,7 +98,7 @@ function App() {
   // --- Drag and Drop Handlers (dnd-kit) ---
   function handleTaskDragEnd(event: any) {
     const {active, over} = event;
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       setTasks((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
@@ -89,7 +109,7 @@ function App() {
   
   function handleInterruptDragEnd(event: any) {
     const {active, over} = event;
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       setInterruptions((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
@@ -103,7 +123,7 @@ function App() {
     e.preventDefault();
     const text = newTaskText.trim();
     if (text === '') return;
-    setTasks(prev => [...prev, { id: Date.now(), text, completed: false }]);
+    setTasks(prev => [{ id: Date.now(), text, completed: false }, ...prev]);
     setNewTaskText('');
   };
 
@@ -215,19 +235,16 @@ function App() {
                 strategy={verticalListSortingStrategy}
               >
                 <ul className="space-y-3">
-                  {incompleteTasks.map(task => (
+                  {incompleteTasks.map((task, index) => (
                     <TaskItem
                       key={task.id}
                       task={task}
+                      index={index}
                       onToggleCompletion={toggleTaskCompletion}
                       onDelete={deleteTask}
                     />
                   ))}
-                  {incompleteTasks.length === 0 && (
-                    <li className="text-center text-gray-400 py-4">
-                      Your task list is empty.
-                    </li>
-                  )}
+                  {incompleteTasks.length === 0 && <EmptyStateTasks />}
                 </ul>
               </SortableContext>
             </DndContext>
@@ -247,19 +264,16 @@ function App() {
               )}
             </div>
             <ul className="space-y-3">
-              {completedTasks.map(task => (
+              {completedTasks.map((task, index) => (
                 <TaskItem
                   key={task.id}
                   task={task}
+                  index={index}
                   onToggleCompletion={toggleTaskCompletion}
                   onDelete={deleteTask}
                 />
               ))}
-              {completedTasks.length === 0 && (
-                <li className="text-center text-gray-400 py-4">
-                  No completed tasks yet.
-                </li>
-              )}
+              {completedTasks.length === 0 && <EmptyStateCompleted />}
             </ul>
           </section>
 
