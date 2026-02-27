@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { TaskItem } from './components/TaskItem';
 import { FloatingButton } from './components/FloatingButton';
 import { InterruptModal } from './components/InterruptModal';
-import { type Interrupt } from './components/FloatingButton';
 import { InterruptItem } from './components/InterruptItem';
 
-
-// Define the shape of a single task
+// --- Type Definitions ---
 export type Task = {
   id: number;
   text: string;
   completed: boolean;
 };
+
+export type Interrupt = {
+  id: number;
+  text: string;
+};
+
 
 function App() {
   // State for main tasks
@@ -79,8 +83,17 @@ function App() {
   };
 
   const moveInterruptToMain = (id: number) => {
-    // This functionality will be built in the next step
-    console.log(`Moving task ${id} to main list (not implemented yet)`);
+    const interruptToMove = interruptions.find(i => i.id === id);
+    if (!interruptToMove) return;
+
+    const newTask: Task = {
+      id: Date.now(),
+      text: interruptToMove.text,
+      completed: false,
+    };
+
+    setTasks(prevTasks => [...prevTasks, newTask]);
+    setInterruptions(prevInterrupts => prevInterrupts.filter(i => i.id !== id));
   };
 
   const incompleteTasks = tasks.filter(task => !task.completed);

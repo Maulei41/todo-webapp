@@ -1,4 +1,4 @@
-import type { Interrupt } from './FloatingButton';
+import type { Interrupt } from '../App';
 
 type InterruptItemProps = {
   interrupt: Interrupt;

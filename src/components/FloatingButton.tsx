@@ -1,7 +1,4 @@
-export type Interrupt = {
-  id: number;
-  text: string;
-};
+import type { Interrupt } from '../App';
 
 type FloatingButtonProps = {
   interruptionsCount: number;
@@ -13,14 +10,26 @@ export function FloatingButton({ interruptionsCount, onClick }: FloatingButtonPr
     <div className="fixed bottom-6 right-6 z-30">
       <button
         onClick={onClick}
-        className="relative bg-red-600 text-white rounded-full w-16 h-16 flex items-center justify-center text-4xl font-light shadow-lg hover:bg-red-700 transition-transform transform hover:scale-110"
+        className={`
+          bg-red-600 text-white font-bold shadow-lg
+          flex items-center justify-center
+          transition-all duration-300 ease-in-out
+          hover:bg-red-700
+          ${interruptionsCount > 0 ? 
+            'rounded-full h-12 px-5' : 
+            'rounded-full w-16 h-16 text-4xl'
+          }
+        `}
         aria-label="Add new interruption"
       >
-        +
-        {interruptionsCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-700 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-red-600">
-            {interruptionsCount}
-          </span>
+        {interruptionsCount > 0 ? (
+          <div className="flex items-center">
+            <span className="text-2xl mr-3">+</span>
+            <div className="w-px bg-red-400 self-stretch mx-1"></div>
+            <span className="text-xl ml-3">{interruptionsCount}</span>
+          </div>
+        ) : (
+          <span>+</span>
         )}
       </button>
     </div>
