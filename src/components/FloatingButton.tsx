@@ -6,7 +6,7 @@ type FloatingButtonProps = {
 
 export function FloatingButton({ interruptionsCount, onClick }: FloatingButtonProps) {
   return (
-    <div className="fixed bottom-6 right-6 z-30">
+    <div className="">
       <button
         onClick={onClick}
         className={`

@@ -194,6 +194,14 @@ function App() {
             </button>
           </form>
 
+          <div className="flex flex-col items-center mb-4">
+            <p className="text-sm text-gray-500 mb-2">Something got in your way? Add it as an interruption to deal with later.</p>
+            <FloatingButton
+              interruptionsCount={interruptions.length}
+              onClick={() => setIsModalOpen(true)}
+            />
+          </div>
+
           {/* Interruptions List */}
           {interruptions.length > 0 && (
             <section className="mb-12">
@@ -280,10 +288,6 @@ function App() {
         </main>
       </div>
 
-      <FloatingButton 
-        interruptionsCount={interruptions.length}
-        onClick={() => setIsModalOpen(true)}
-      />
       
       <InterruptModal
         isOpen={isModalOpen}
