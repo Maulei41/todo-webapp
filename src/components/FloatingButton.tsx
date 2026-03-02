@@ -25,7 +25,7 @@ export function FloatingButton({ interruptionsCount, onClick }: FloatingButtonPr
           <div className="flex items-center">
             <span className="text-2xl mr-3">+</span>
             <div className="w-px bg-red-400 self-stretch mx-1"></div>
-            <span className="text-xl ml-3">{interruptionsCount}</span>
+            {/*<span className="text-xl ml-3">{interruptionsCount}</span>*/}
           </div>
         ) : (
           <span>+</span>

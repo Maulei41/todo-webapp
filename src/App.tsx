@@ -69,7 +69,7 @@ function App() {
     }
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInterruptModalOpen, setInterruptModalOpen] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
 
   // --- dnd-kit sensor setup ---
@@ -80,7 +80,7 @@ function App() {
     })
   );
 
-  // Effects for persistence
+  // Effects for persistence and shortcuts
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
@@ -88,6 +88,21 @@ function App() {
   useEffect(() => {
     localStorage.setItem('interruptions', JSON.stringify(interruptions));
   }, [interruptions]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'i') {
+        event.preventDefault();
+        setInterruptModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // --- Drag and Drop Handlers (dnd-kit) ---
   function handleTaskDragEnd(event: any) {
@@ -168,6 +183,9 @@ function App() {
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800">My Todo List</h1>
           <p className="text-gray-500">A simple tool to manage your daily tasks.</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Press <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">I</kbd> to quickly capture an interruption.
+          </p>
         </header>
 
         <main>
@@ -192,7 +210,7 @@ function App() {
             <p className="text-sm text-gray-500 mb-2">Something got in your way? Add it as an interruption to deal with later.</p>
             <FloatingButton
               interruptionsCount={interruptions.length}
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setInterruptModalOpen(true)}
             />
           </div>
 
@@ -282,10 +300,9 @@ function App() {
         </main>
       </div>
 
-      
       <InterruptModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isInterruptModalOpen}
+        onClose={() => setInterruptModalOpen(false)}
         onSave={addInterrupt}
       />
     </div>
